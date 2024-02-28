@@ -1,4 +1,4 @@
-module CalendarRoadmap
+module RoadmapCalendar
 
 go 1.22.0
 

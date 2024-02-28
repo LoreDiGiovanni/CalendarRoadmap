@@ -1,7 +1,7 @@
 build:
 	go build -o bin/app
 
-run: tailwindcss templ build
+run: templ tailwindcss build
 	./bin/app
 
 test:
