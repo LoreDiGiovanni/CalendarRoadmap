@@ -1,7 +1,7 @@
 build:
 	go build -o bin/app
 
-run: templ tailwindcss build
+run:  templ tailwindcss build 
 	./bin/app
 
 test:
@@ -9,7 +9,7 @@ test:
 
 
 tailwindcss:
-	bun run tailwindcss --config tailwind.config.js -i input.css -o static/css/styles.css
+	bun run tailwindcss --config tailwind.config.js -i input.css -o static/css/styles.css 
 
 templ:
 	templ generate

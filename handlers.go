@@ -43,12 +43,12 @@ func GetComponentEventAdderHandler(w http.ResponseWriter, r *http.Request)error{
 }
 func GetComponentDropDownColors(w http.ResponseWriter, r *http.Request)error{
     colors := []types.Color{
-    types.NewColor("Red", "#ff6c6b"),
-    types.NewColor("Red", "#da8548"),
-    types.NewColor("Red", "#98be65"),
-    types.NewColor("Red", "#4db5bd"),
-    types.NewColor("Red", "#ECBE7B"),
-    types.NewColor("Red", "#51afef"),
+    types.NewColor("c001", "#ff6c6b"),
+    types.NewColor("c002", "#da8548"),
+    types.NewColor("c003", "#98be65"),
+    types.NewColor("c004", "#4db5bd"),
+    types.NewColor("c005", "#ECBE7B"),
+    types.NewColor("c006", "#51afef"),
     types.NewColor("dark-blue", "#2257A0"),
     types.NewColor("magenta", "#c678dd"),
     types.NewColor("violet", "#a9a1e1"),

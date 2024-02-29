@@ -118,6 +118,7 @@ templ dialoguebox(){
     </div>
   </label>
 }
+
 templ DropDownColors(colors []types.Color){
     <div id="color_menu" class="flex flex-row ">
     <button onclick={scrollYList(-20,"color_list")}
@@ -127,26 +128,25 @@ templ DropDownColors(colors []types.Color){
 
     <div id="color_list" class=" no-scrollbar flex flex-row bg-white space-x-1 overflow-x-scroll w-1/2">
         for _, item := range colors{
-                <div onclick={changeColor(item.Code,"dot")} 
+                <div id={item.Name} 
+                    onclick={changeColor(item.Code,"dot")} 
                     hx-get="/component/colorsbutton"
                     hx-swap="outerHTML"
                     hx-target="#color_menu"
                     hx-trigger="click"
-                class={item.Tw_bg,item.Tw_border," shrink-0 border h-5 w-5 rounded-full cursor-pointer"}></div> 
+                    class={item.Tw_bg,item.Tw_border," shrink-0 border h-5 w-5 rounded-full cursor-pointer"}></div> 
+                    @changeColor(item.Code,item.Name)
         }
     </div> 
+
     
     <button onclick={scrollYList(20,"color_list")}
         class=" shrink-0 bg-white h-5 w-7 rounded-r-lg justify-content items-center">
         @MaterialIcon("scale-50  mb-2","arrow_forward_ios")
     </button> 
     </div>
-}
+    
 
-templ MaterialIcon(class string,name string){
-    <i class={"material-icons",class}>
-        {name} 
-    </i>
 }
 
 templ ColorsButton(){
@@ -160,6 +160,15 @@ script changeColor(color string, id string) {
             dot.style.backgroundColor = color;
             dot.style.borderColor = color;
 }
+
+templ MaterialIcon(class string,name string){
+    <i class={"material-icons",class}>
+        {name} 
+    </i>
+}
+
+
+
 script scrollYList(amount int,id string) {
     var container = document.getElementById(id);
     container.scrollBy({

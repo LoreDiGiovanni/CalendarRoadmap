@@ -6,6 +6,8 @@ import(
 )
 
 func main()  {
+    ip:= "localhost"
+    port := "3080"
     mux := http.NewServeMux()
     fs := http.FileServer(http.Dir("static"))
     mux.Handle("/static/*", http.StripPrefix("/static/", fs))
@@ -15,6 +17,6 @@ func main()  {
     mux.HandleFunc("GET /component/dropdowncolors", ErrorHandler(GetComponentDropDownColors))
     mux.HandleFunc("GET /component/colorsbutton", ErrorHandler(GetComponentColorsButton))
     mux.HandleFunc("GET /404",ErrorHandler(GetFailHendler))
-    log.Println("running on >> http://192.168.1.50:3080")
-    http.ListenAndServe("192.168.1.50:3080",mux)
+    log.Println("running on >> http://"+ip+":"+port)
+    http.ListenAndServe(ip+":"+port,mux)
 }

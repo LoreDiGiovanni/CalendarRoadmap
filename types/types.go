@@ -8,6 +8,8 @@ type Color struct{
 }
 
 func NewColor(name string, code string) Color{
-    return Color{Name: name,Code: code, Tw_bg: "bg-["+code+"]", Tw_border:"border-["+code+"]"}
+    return Color{Name: name,
+                Code: code, 
+                Tw_bg: "bg-["+code+"]", Tw_border:"border-["+code+"]"}
 } 
 
