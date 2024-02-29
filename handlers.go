@@ -43,8 +43,17 @@ func GetComponentEventAdderHandler(w http.ResponseWriter, r *http.Request)error{
 }
 func GetComponentDropDownColors(w http.ResponseWriter, r *http.Request)error{
     colors := []types.Color{
-    types.NewColor("Red", "#ff0000"),
-    types.NewColor("Green", "#282c34"),}
+    types.NewColor("Red", "#ff6c6b"),
+    types.NewColor("Red", "#da8548"),
+    types.NewColor("Red", "#98be65"),
+    types.NewColor("Red", "#4db5bd"),
+    types.NewColor("Red", "#ECBE7B"),
+    types.NewColor("Red", "#51afef"),
+    types.NewColor("dark-blue", "#2257A0"),
+    types.NewColor("magenta", "#c678dd"),
+    types.NewColor("violet", "#a9a1e1"),
+    types.NewColor("cyan", "#46D9FF"),
+    types.NewColor("dark-cyan", "#5699AF"),}
 
     page := DropDownColors(colors)
     return RenderView(w,r,page,"/")
@@ -52,6 +61,11 @@ func GetComponentDropDownColors(w http.ResponseWriter, r *http.Request)error{
 
 func GetFailHendler (w http.ResponseWriter, r *http.Request)error{
     page := Fail()
+    return RenderView(w,r,page,"/404")
+}
+
+func GetComponentColorsButton(w http.ResponseWriter, r *http.Request)error{
+    page := ColorsButton()
     return RenderView(w,r,page,"/404")
 }
 func GetComponentEmpty (w http.ResponseWriter, r *http.Request)error{
