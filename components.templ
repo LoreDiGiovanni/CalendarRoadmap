@@ -13,6 +13,9 @@ templ Layout(route string) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>RCalendar</title>
     <script src="static/js/htmx.min.js"></script>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script src="https://unpkg.com/htmx.org/dist/ext/json-enc.js"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <link href="static/css/styles.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons"/>
 </head>
@@ -58,12 +61,13 @@ templ InputEventPlaceholder(){
         </div>
     </div>
 }
+
 templ InputEvent(){
-    <div>
+    <form  hx-ext="json-enc"> 
         <div class="flex flex-row items-center space-x-2 ">
             <div id="dot" class="w-3 h-3 border border-gray-500 rounded-full bg-gray-500"></div>
 
-            <input type="text" id="title" name="Title" 
+            <input type="text" id="title" name="title" 
                 placeholder="Add title..."
                 class=" font-semibold text-xl border-none bg-transparent text-white focus:outline-none"/>
 
@@ -75,11 +79,14 @@ templ InputEvent(){
                 placeholder="Add notes..."
                 class="resize-y  break-words border-none bg-transparent text-white w-full focus:outline-none "/>
                 @ColorsButton()        
+                <button 
+                    type="submit" 
+                    hx-post="/events">
+                    Add
+                </button>
         </div>
-    </div>
+    </form>
 }
-
-
 
 templ Roadmap(e []types.Events) {
     <div  class="flex flex-col w-1/3">
@@ -91,42 +98,27 @@ templ Roadmap(e []types.Events) {
                 <p class="text-slate-200 text-sm bg-black rounded-full pl-1 pr-1">{item.Date}</p>
             </div>
             <div class="border-l-2 border-gray-500 content-start p-4 ml-1 mb-1">
-                <p class="text-white">{item.Notes}</p>
+                <div class="text-white">@templ.Raw(item.Notes)</div>
                 <p class="italic text-slate-200 text-xs">from {item.Time_start} to {item.Time_end}</p>
-            </div> 
+                <div class="flex flex-row space-x-2 mt-1"> 
+                    for _, tag := range item.Tags{
+                        @EventTag(tag)
+                    }
+                    </div>
+                </div> 
         }
         @InputEventPlaceholder()
     </div>
 }
 
-templ dialoguebox(){
-
-<!-- Modal trigger -->
-  <div>
-    <label for="tw-modal" class="cursor-pointer rounded-full bg-black text-xs px-1 py-1 text-white">OPEN MODAL</label>
-  </div>
-
-  <!-- Hidden toggle -->
-  <input type="checkbox" id="tw-modal" class="peer fixed appearance-none opacity-0"/>
-
-  <!-- Modal -->
-  <label for="tw-modal" class="pointer-events-none invisible fixed inset-0 flex cursor-pointer items-center justify-center overflow-hidden overscroll-contain bg-slate-700/70 opacity-0 transition-all duration-200 ease-in-out peer-checked:pointer-events-auto peer-checked:visible peer-checked:opacity-100 peer-checked:translate-y-0 peer-checked:scale-100">
-
-    <!-- Modal box -->
-    <div class="overscroll-contain rounded-md bg-white p-6 text-black shadow-2xl transition max-h-(calc(100vh-5em)) h-fit max-w-lg scale-90 overflow-y-auto">
-      <h3 class="text-lg font-bold">Colors</h3>
-    </div>
-  </label>
-}
-
 templ DropDownColors(colors []types.Color){
-    <div id="color_menu" class="flex flex-row ">
+    <div id="color_menu" class="flex flex-row w-1/2">
     <button onclick={scrollYList(-20,"color_list")}
             class="shrink-0 bg-white h-5 w-7 rounded-l-lg justify-content items-center">
         @MaterialIcon("scale-50","arrow_back_ios")
     </button> 
 
-    <div id="color_list" class=" no-scrollbar flex flex-row bg-white space-x-1 overflow-x-scroll w-1/2">
+    <div id="color_list" class=" no-scrollbar flex flex-row bg-white space-x-1 overflow-x-scroll ">
         for _, item := range colors{
                 <div id={item.Name} 
                     onclick={changeColor(item.Code,"dot")} 
@@ -149,6 +141,11 @@ templ DropDownColors(colors []types.Color){
 
 }
 
+
+templ EventTag(tag string){
+    <div class="px-1 test-xs bg-white rounded-full">{tag}</div> 
+}
+
 templ ColorsButton(){
     <button class="rounded-full h-5 bg-white px-1"
             hx-get="/component/dropdowncolors" 
@@ -167,8 +164,6 @@ templ MaterialIcon(class string,name string){
     </i>
 }
 
-
-
 script scrollYList(amount int,id string) {
     var container = document.getElementById(id);
     container.scrollBy({
@@ -180,4 +175,25 @@ script scrollYList(amount int,id string) {
 templ Empty(){
     
 }
+
+templ dialoguebox(){
+
+<!-- Modal trigger -->
+  <div>
+    <label for="tw-modal" class="cursor-pointer rounded-full bg-black text-xs px-1 py-1 text-white">OPEN MODAL</label>
+  </div>
+
+  <!-- Hidden toggle -->
+  <input type="checkbox" id="tw-modal" class="peer fixed appearance-none opacity-0"/>
+
+  <!-- Modal -->
+  <label for="tw-modal" class="pointer-events-none invisible fixed inset-0 flex cursor-pointer items-center justify-center overflow-hidden overscroll-contain bg-slate-700/70 opacity-0 transition-all duration-200 ease-in-out peer-checked:pointer-events-auto peer-checked:visible peer-checked:opacity-100 peer-checked:translate-y-0 peer-checked:scale-100">
+
+    <!-- Modal box -->
+    <div class="overscroll-contain rounded-md bg-white p-6 text-black shadow-2xl transition max-h-(calc(100vh-5em)) h-fit max-w-lg scale-90 overflow-y-auto">
+      <h3 class="text-lg font-bold">Colors</h3>
+    </div>
+  </label>
+}
+
 

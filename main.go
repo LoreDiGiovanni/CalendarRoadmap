@@ -16,6 +16,7 @@ func main()  {
     mux.HandleFunc("GET /component/eventadder", ErrorHandler(GetComponentEventAdderHandler)) 
     mux.HandleFunc("GET /component/dropdowncolors", ErrorHandler(GetComponentDropDownColors))
     mux.HandleFunc("GET /component/colorsbutton", ErrorHandler(GetComponentColorsButton))
+    mux.HandleFunc("POST /events", ErrorHandler(PostEventHandler)) 
     mux.HandleFunc("GET /404",ErrorHandler(GetFailHendler))
     log.Println("running on >> http://"+ip+":"+port)
     http.ListenAndServe(ip+":"+port,mux)
