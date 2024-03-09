@@ -2,12 +2,10 @@ package main
 
 import (
 	"RoadmapCalendar/types"
-	"fmt"
     "encoding/json"
 	"log"
 	"net/http"
 	"time"
-
 	"github.com/a-h/templ"
 	"github.com/gomarkdown/markdown"
 	"github.com/gomarkdown/markdown/html"
@@ -49,37 +47,29 @@ func mdToHTML(md []byte) string {
 	return string(markdown.ToHTML(md, p, renderer))
 }
 
-func GetHomeHendler(w http.ResponseWriter, r *http.Request)error{
-    test := []byte(`## markdown document $x^2$
-- item $x^2$ 
-- item 2`)
-    tmp :=  mdToHTML(test)
-    e := []types.Events{
-        types.Events{Title: "Prova impegno 1",
-                    Notes: "Prova Nota ",
-                    Date: "20/06/2025",
-                    Time_start: "11:00",
-                    Time_end: "12:00",
-                    Tags: []string{"#Tag1","#Tag2"},},
-        types.Events{Title: "Prova impegno 2",Notes: "Prova Nota ",Date: "20/06/2025",Time_start: "11:00",Time_end: "12:00"},
-        types.Events{Title: "Prova impegno 3",Notes: tmp,Date: "20/06/2025",Time_start: "11:00",Time_end: "12:00"}}
+func (s* Server) GetHomeHendler(w http.ResponseWriter, r *http.Request)error{
+    user := types.User{ID: "65e85497b463d53aa3065754"}
+    e,err := s.db.GetEvents(user); if err!= nil { return err }
     currentTime := time.Now()
     page := Home(e, currentTime.Format("2006/01/02"))
     return RenderView(w,r,page,"/")
 }
-func PostEventHandler(w http.ResponseWriter, r *http.Request)error{
+func (s* Server) PostEventHandler(w http.ResponseWriter, r *http.Request)error{
+    user := types.User{ID: "65e85497b463d53aa3065754"}
     var event types.Events
     json.NewDecoder(r.Body).Decode(&event)
     defer r.Body.Close()
-    fmt.Println(event)
-    page := Empty()
+    log.Println(event)
+    s.db.PostEvents(user,event)
+    w.Header().Add("HX-Trigger","roadmapChange")
+    page := InputEventPlaceholder()
     return RenderView(w,r,page,"/404")
 }
 
-func GetComponentEventAdderHandler(w http.ResponseWriter, r *http.Request)error{
+func (s* Server) GetComponentEventAdderHandler(w http.ResponseWriter, r *http.Request)error{
     return RenderView(w,r,InputEvent(),"/")
 }
-func GetComponentDropDownColors(w http.ResponseWriter, r *http.Request)error{
+func (s* Server) GetComponentDropDownColors(w http.ResponseWriter, r *http.Request)error{
     colors := []types.Color{
     types.NewColor("c001", "#ff6c6b"),
     types.NewColor("c002", "#da8548"),
@@ -97,16 +87,27 @@ func GetComponentDropDownColors(w http.ResponseWriter, r *http.Request)error{
     return RenderView(w,r,page,"/")
 }
 
-func GetFailHendler (w http.ResponseWriter, r *http.Request)error{
-    page := Fail()
+func (s* Server) GetInputEventPlaceholder (w http.ResponseWriter, r *http.Request)error{
+    page := InputEventPlaceholder()
     return RenderView(w,r,page,"/404")
 }
 
-func GetComponentColorsButton(w http.ResponseWriter, r *http.Request)error{
+func (s* Server) GetFailHendler (w http.ResponseWriter, r *http.Request)error{
+    page := Fail()
+    return RenderView(w,r,page,"/404")
+}
+func (s* Server) GetRoadmapHendler (w http.ResponseWriter, r *http.Request)error{
+    user := types.User{ID: "65e85497b463d53aa3065754"}
+    e,err := s.db.GetEvents(user); if err!= nil { return err }
+    page := Roadmap(*e)
+    return RenderView(w,r,page,"/404")
+}
+
+func (s* Server) GetComponentColorsButton(w http.ResponseWriter, r *http.Request)error{
     page := ColorsButton()
     return RenderView(w,r,page,"/404")
 }
-func GetComponentEmpty (w http.ResponseWriter, r *http.Request)error{
+func (s* Server) GetComponentEmpty (w http.ResponseWriter, r *http.Request)error{
     page := Empty()
     return RenderView(w,r,page,"/404")
 }
