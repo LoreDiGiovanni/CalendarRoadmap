@@ -21,7 +21,7 @@ templ Layout(route string) {
 </head>
 
 <body class="font-mono bg-[#282c34] w-full" >
-    <main id="view" hx-swap="innerHTML" hx-get={route} hx-trigger="load" ></main>
+    <main id="view"  hx-swap="outerHTML" hx-get={route} hx-trigger="load" ></main>
 </body>
 
 </html>
@@ -69,30 +69,65 @@ templ InputEvent(){
             <div id="dot" class="shrink-0 w-3 h-3 border border-gray-500 rounded-full bg-gray-500"></div>
 
             <input type="text" id="title" name="title" 
-                placeholder="Add title..."
-                class=" font-semibold text-xl border-none bg-transparent text-white focus:outline-none"/>
+                placeholder="Title"
+                class="font-semibold text-xl border-none bg-transparent text-white focus:outline-none" hequired/>
 
             <input type="date" id="date" name="date" 
                 class="text-sm bg-black rounded-full text-white focus:outline-none"/>
         </div>
         <div class="border-l-2 border-gray-500 content-start p-4 ml-1 mb-1 space-y-2">
             <textarea id="notes" name="notes" 
-                placeholder="Add notes..."
-                class="resize-y break-words border-none bg-transparent text-white w-full focus:outline-none "/>
-                <div class="flex flex-row space-x-2">
-                    @ColorsButton()        
-                    <button 
-                        type="submit" 
-                        class="px-1 rounded-full bg-white"
-                        hx-post="/events"
-                        hx-swap="outerHTML"
-                        hx-target="#input_event">
-                        Add
-                    </button>
-                    </div>
+                placeholder="Notes"
+                class=" w-full resize-y break-words border-none bg-transparent text-white focus:outline-none"/>
+
+            <div class="flex flex-row space-x-2">
+                <label class="text-white">From</label>
+                <input type="text" id="time_start" name="time_start" 
+                    placeholder="00:00"
+                    maxlength="5" 
+                    oninput="InputTimeValidator(this)"
+                    class="w-8 font-semibold text-xs border-none bg-transparent text-white focus:outline-none"/>
+                <label class="text-white">to</label>
+                <input type="text" id="time_end" name="time_end" 
+                    placeholder="00:00"
+                    maxlength="5"
+                    oninput="InputTimeValidator(this)"
+                    class="font-semibold text-xs border-none bg-transparent text-white focus:outline-none"/>
+
+            </div>
+            <div class="flex flex-row space-x-2">
+                @ColorsButton()        
+                <input 
+                    type="submit" 
+                    class="px-1 rounded-full bg-white"
+                    hx-post="/event"
+                    hx-swap="outerHTML"
+                    hx-target="#input_event"/>
+            </div>
         </div>
     </form>
+
+    <script>
+        function InputTimeValidator(input) {
+            var regex = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
+            if (regex.test(input.value)){
+                input.style.color="#38a169"
+            }else{
+                input.style.color="#e53e3e"
+            }
+        }
+        function InputDateValidator(input) {
+            var regex = /^(0[1-9]|1[0-2])\/(0[1-9]|[12][0-9]|3[01])\/(19|20)\d{2}$/;
+          
+            if (regex.test(input.value)) {
+                input.style.color = "#38a169" 
+            } else {
+                input.style.color = "#e53e3e" 
+            }
+        }
+    </script>
 }
+
 
 templ Roadmap(e []types.Events) {
     <div id="roadmap"  
@@ -102,6 +137,7 @@ templ Roadmap(e []types.Events) {
          hx-swap="outerHTML">
     <div class="border-l-2 border-gray-500 p-4 ml-1 mb-1"></div>
         for _, item := range e{
+            <div id={item.ID}>
             <div class="flex flex-row items-center space-x-2">
                 <div id={item.ID +"dot"}
                     class="shrink-0 w-3 h-3 border border-gray-500 rounded-full bg-gray-500"></div>
@@ -111,13 +147,16 @@ templ Roadmap(e []types.Events) {
             </div>
             <div class="border-l-2 border-gray-500 content-start p-4 ml-1 mb-1">
                 <div class="text-white">@templ.Raw(item.Notes)</div>
-                <p class="italic text-slate-200 text-xs">from {item.Time_start} to {item.Time_end}</p>
+                if item.Time_start != "" {
+                    <p class="italic text-slate-200 text-xs">from {item.Time_start} to {item.Time_end}</p>
+                }
                 <div class="flex flex-row space-x-2 mt-1"> 
                     for _, tag := range item.Tags{
                         @EventTag(tag)
                     }
                 </div>
             </div> 
+            </div>
         }
         @InputEventPlaceholder()
     </div>

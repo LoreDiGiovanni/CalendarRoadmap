@@ -1,0 +1,17 @@
+package main
+
+templ Login(){
+    <div id="login" class="flex flex-col items-center"> 
+        <form hx-ext="json-enc">
+            <label>Login</label>
+            <input type="text" id="email" name="email" 
+                placeholder="Email" />
+            <input type="text" id="pwd" name="pwd" 
+                placeholder="Password" />
+            <input
+                    type="submit" 
+                    class="px-1 rounded-full bg-white"
+                    hx-post="/account"/>
+        </form>
+    </div>
+}

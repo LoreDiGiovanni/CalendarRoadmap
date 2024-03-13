@@ -16,14 +16,6 @@ type mongoStorage struct {
 	db *mongo.Client
 }
 
-func StringIdToObjectId(id string) (*primitive.ObjectID,error){
-    objectID, err := primitive.ObjectIDFromHex(id); if err != nil {
-		return nil,errors.New("Invalid ID") 
-	}else{
-        return &objectID,nil
-    }
-}
-
 func NewMongoStore() (*mongoStorage, error) {
 	uri := os.Getenv("MONGODB_URI")
 	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(uri))
@@ -34,8 +26,16 @@ func NewMongoStore() (*mongoStorage, error) {
 	}
 }
 
-func (s mongoStorage) PostEvents(user types.User, event types.Events) error {
-    event.Owner = user.ID
+func StringIdToObjectId(id string) (*primitive.ObjectID,error){
+    objectID, err := primitive.ObjectIDFromHex(id); if err != nil {
+		return nil,errors.New("Invalid ID") 
+	}else{
+        return &objectID,nil
+    }
+}
+
+func (s mongoStorage) PostEvents(id string, event types.Events) error {
+    event.Owner = id 
 	coll := s.db.Database("RoadmapCalendar").Collection("events")
 	_, err := coll.InsertOne(context.TODO(), event)
 	if err != nil {
@@ -44,11 +44,20 @@ func (s mongoStorage) PostEvents(user types.User, event types.Events) error {
 		return nil
 	}
 }
+func (s mongoStorage) PostUser(user types.User) error{
+    coll := s.db.Database("RoadmapCalendar").Collection("users")
+	_, err := coll.InsertOne(context.TODO(), user)
+	if err != nil {
+		return err
+	} else {
+		return nil
+	}
+}
 
-func (s mongoStorage) GetEvents(user types.User) (*[]types.Events, error) {
+func (s mongoStorage) GetEvents(user string) (*[]types.Events, error) {
 	coll := s.db.Database("RoadmapCalendar").Collection("events")
     var results []types.Events
-    query := bson.D{{"owner",user.ID}}
+    query := bson.D{{"owner",user}}
 	cursor, err := coll.Find(context.TODO(), query)
     cursor.All(context.TODO(), &results)
 	return &results,err

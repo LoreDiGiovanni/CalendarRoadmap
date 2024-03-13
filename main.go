@@ -1,9 +1,11 @@
 package main
 
-import(
-    "net/http"
-    "log"
-    "RoadmapCalendar/storage"
+import (
+	"RoadmapCalendar/storage"
+	"log"
+	"net/http"
+
+	"github.com/joho/godotenv"
 )
 type Server struct{
    address string 
@@ -22,6 +24,11 @@ func (s Server)Run(){
 }
 
 func main()  {
+    
+    err := godotenv.Load()
+    if err != nil {
+        log.Fatal("Error loading .env file")
+    }
     storage, err := storage.NewMongoStore()
     if err== nil{
         server := NewServer("localhost:3080",storage)
@@ -32,11 +39,12 @@ func main()  {
         server.mux.HandleFunc("GET /component/dropdowncolors", ErrorHandler(server.GetComponentDropDownColors))
         server.mux.HandleFunc("GET /component/colorsbutton", ErrorHandler(server.GetComponentColorsButton))
         server.mux.HandleFunc("GET /component/inputeventplaceholder",ErrorHandler(server.GetInputEventPlaceholder))
-        server.mux.HandleFunc("POST /events", ErrorHandler(server.PostEventHandler)) 
+        server.mux.HandleFunc("POST /event", ErrorHandler(server.PostEventHandler)) 
+        server.mux.HandleFunc("POST /account", ErrorHandler(server.PostAccountHandler)) 
         server.mux.HandleFunc("GET /404",ErrorHandler(server.GetFailHendler))
         log.Println("running on >> http://"+server.address)
         server.Run()
     }else{
-        log.Println("Database Error")
+        log.Println("Error database connection")
     }
 }

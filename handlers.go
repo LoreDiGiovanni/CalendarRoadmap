@@ -1,11 +1,13 @@
 package main
 
 import (
+	"RoadmapCalendar/tools"
 	"RoadmapCalendar/types"
-    "encoding/json"
+	"encoding/json"
 	"log"
 	"net/http"
 	"time"
+
 	"github.com/a-h/templ"
 	"github.com/gomarkdown/markdown"
 	"github.com/gomarkdown/markdown/html"
@@ -47,28 +49,70 @@ func mdToHTML(md []byte) string {
 	return string(markdown.ToHTML(md, p, renderer))
 }
 
+
+
 func (s* Server) GetHomeHendler(w http.ResponseWriter, r *http.Request)error{
-    user := types.User{ID: "65e85497b463d53aa3065754"}
-    e,err := s.db.GetEvents(user); if err!= nil { return err }
-    currentTime := time.Now()
-    page := Home(e, currentTime.Format("2006/01/02"))
-    return RenderView(w,r,page,"/")
+    jwt, err := tools.ReadHttpOnlyCookie(r)
+    if err!= nil{
+        return RenderView(w,r,Login(),"/")
+    }else{
+        token, err := tools.ValidateJWT(jwt)
+        if err != nil {
+            log.Println("Error invalid jwt")  
+            return RenderView(w,r,Fail(),"/404")
+        }else{
+            e,err := s.db.GetEvents(tools.GetIdFromToken(token)); if err!= nil { return err }
+            currentTime := time.Now()
+            page := Home(e, currentTime.Format("2006/01/02"))
+            return RenderView(w,r,page,"/")
+
+        }
+    }
 }
+
 func (s* Server) PostEventHandler(w http.ResponseWriter, r *http.Request)error{
-    user := types.User{ID: "65e85497b463d53aa3065754"}
     var event types.Events
     json.NewDecoder(r.Body).Decode(&event)
     defer r.Body.Close()
+    jwt, err := tools.ReadHttpOnlyCookie(r)
+    token,err:= tools.ValidateJWT(jwt)
+    id := tools.GetIdFromToken(token)
     log.Println(event)
-    s.db.PostEvents(user,event)
-    w.Header().Add("HX-Trigger","roadmapChange")
-    page := InputEventPlaceholder()
-    return RenderView(w,r,page,"/404")
+    if err != nil{
+        return err
+    }else{
+        s.db.PostEvents(id,event)
+        w.Header().Add("HX-Trigger","roadmapChange")
+        page := InputEventPlaceholder()
+        return RenderView(w,r,page,"/404")
+    }
+    
+}
+
+func (s* Server) PostAccountHandler (w http.ResponseWriter, r *http.Request)error{
+    var user types.User
+    json.NewDecoder(r.Body).Decode(&user)
+    defer r.Body.Close()
+    log.Println(user)
+    jwt,err := tools.CreateUserJWT(&user)
+    if err != nil{
+        return err
+    }else{
+        user.JWT = jwt
+        err := s.db.PostUser(user)
+        if err == nil {
+            cookie := tools.WriteHttpOnlyCookie(jwt) 
+            http.SetCookie(w, &cookie)
+    }
+        //w.Header().Add("HX-Trigger","accountChange")
+        return nil  
+    }
 }
 
 func (s* Server) GetComponentEventAdderHandler(w http.ResponseWriter, r *http.Request)error{
     return RenderView(w,r,InputEvent(),"/")
 }
+
 func (s* Server) GetComponentDropDownColors(w http.ResponseWriter, r *http.Request)error{
     colors := []types.Color{
     types.NewColor("c001", "#ff6c6b"),
@@ -96,11 +140,23 @@ func (s* Server) GetFailHendler (w http.ResponseWriter, r *http.Request)error{
     page := Fail()
     return RenderView(w,r,page,"/404")
 }
+
 func (s* Server) GetRoadmapHendler (w http.ResponseWriter, r *http.Request)error{
-    user := types.User{ID: "65e85497b463d53aa3065754"}
-    e,err := s.db.GetEvents(user); if err!= nil { return err }
-    page := Roadmap(*e)
-    return RenderView(w,r,page,"/404")
+    jwt, err := tools.ReadHttpOnlyCookie(r)
+    if err!= nil{
+        return RenderView(w,r,Login(),"/")
+    }else{
+        token, err := tools.ValidateJWT(jwt)
+        if err != nil {
+            log.Println("Error invalid jwt")  
+            return RenderView(w,r,Fail(),"/404")
+        }else{
+            e,err := s.db.GetEvents(tools.GetIdFromToken(token)); if err!= nil { return err }
+            page := Roadmap(*e)
+            return RenderView(w,r,page,"/")
+
+        }
+    }
 }
 
 func (s* Server) GetComponentColorsButton(w http.ResponseWriter, r *http.Request)error{
