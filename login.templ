@@ -11,7 +11,35 @@ templ Login(){
             <input
                     type="submit" 
                     class="px-1 rounded-full bg-white"
-                    hx-post="/account"/>
+                    hx-post="/account/new"
+                    hx-swap="outerHTML"
+                    hx-target="#login"/>
+        </form>
+        <p class="text-blue-400" 
+           hx-trigger="click"
+           hx-get="component/sigin" 
+           hx-swap="outerHTML"
+           hx-target="#login">Test prova</p>
+    </div>
+}
+
+templ Sigin(e bool){
+    <div id="sigin" class="flex flex-col items-center"> 
+        if e {
+            <p>ERROR</p>
+        } 
+        <form hx-ext="json-enc">
+            <label>Sigin</label>
+            <input type="text" id="email" name="email" 
+                placeholder="Email" />
+            <input type="text" id="pwd" name="pwd" 
+                placeholder="Password" />
+            <input
+                    type="submit" 
+                    class="px-1 rounded-full bg-white"
+                    hx-post="/account"
+                    hx-swap="outerHTML"
+                    hx-target="#sigin"/>
         </form>
     </div>
 }

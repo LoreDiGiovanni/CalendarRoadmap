@@ -34,8 +34,7 @@ func StringIdToObjectId(id string) (*primitive.ObjectID,error){
     }
 }
 
-func (s mongoStorage) PostEvents(id string, event types.Events) error {
-    event.Owner = id 
+func (s mongoStorage) PostEvents( event types.Events) error {
 	coll := s.db.Database("RoadmapCalendar").Collection("events")
 	_, err := coll.InsertOne(context.TODO(), event)
 	if err != nil {
@@ -52,6 +51,18 @@ func (s mongoStorage) PostUser(user types.User) error{
 	} else {
 		return nil
 	}
+}
+
+func (s mongoStorage) GetUser(user types.User) (*types.User,error){
+    coll := s.db.Database("RoadmapCalendar").Collection("users")
+    query  := bson.D{{"email",user.Email}}
+    var dbuser types.User
+	err := coll.FindOne(context.TODO(), query).Decode(&dbuser);
+    if err!= nil{
+        return nil,err
+    }else{
+        return &dbuser,nil
+    }
 }
 
 func (s mongoStorage) GetEvents(user string) (*[]types.Events, error) {

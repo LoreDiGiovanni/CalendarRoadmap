@@ -8,7 +8,7 @@ import(
 
 func CreateUserJWT(user *types.User) (string, error){
     claims:= &jwt.MapClaims{
-        "id":   user.ID,
+        "uuid":   user.UUID,
         "email": user.Email,
     }
     secret:= []byte(os.Getenv("JWT_SECRET"))
@@ -33,6 +33,6 @@ func DecodeJWT(tokenString string) (*jwt.Token,error){
 
 func GetIdFromToken(token *jwt.Token) string{ 
     claims := token.Claims.(jwt.MapClaims)
-    userid := claims["id"].(string)
-    return userid
+    useruuid := claims["uuid"].(string)
+    return useruuid
 }

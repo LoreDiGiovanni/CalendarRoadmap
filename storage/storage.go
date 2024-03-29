@@ -3,7 +3,8 @@ package storage
 import "RoadmapCalendar/types"
 
 type Storage interface {
-	PostEvents(string, types.Events) error
+	PostEvents(types.Events) error
 	PostUser(types.User) error
     GetEvents(string) (*[]types.Events, error)
+    GetUser(types.User) (*types.User,error)
 }

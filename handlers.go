@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"time"
+    "github.com/google/uuid"
 
 	"github.com/a-h/templ"
 	"github.com/gomarkdown/markdown"
@@ -76,12 +77,11 @@ func (s* Server) PostEventHandler(w http.ResponseWriter, r *http.Request)error{
     defer r.Body.Close()
     jwt, err := tools.ReadHttpOnlyCookie(r)
     token,err:= tools.ValidateJWT(jwt)
-    id := tools.GetIdFromToken(token)
-    log.Println(event)
+    event.Owner = tools.GetIdFromToken(token)
     if err != nil{
         return err
     }else{
-        s.db.PostEvents(id,event)
+        s.db.PostEvents(event)
         w.Header().Add("HX-Trigger","roadmapChange")
         page := InputEventPlaceholder()
         return RenderView(w,r,page,"/404")
@@ -89,11 +89,13 @@ func (s* Server) PostEventHandler(w http.ResponseWriter, r *http.Request)error{
     
 }
 
-func (s* Server) PostAccountHandler (w http.ResponseWriter, r *http.Request)error{
+func (s* Server) PostAccountNewHandler (w http.ResponseWriter, r *http.Request)error{
     var user types.User
     json.NewDecoder(r.Body).Decode(&user)
     defer r.Body.Close()
     log.Println(user)
+    user.PWD,user.Salt = tools.GeneratePwd(user.PWD) 
+    user.UUID = uuid.New().String()
     jwt,err := tools.CreateUserJWT(&user)
     if err != nil{
         return err
@@ -103,11 +105,29 @@ func (s* Server) PostAccountHandler (w http.ResponseWriter, r *http.Request)erro
         if err == nil {
             cookie := tools.WriteHttpOnlyCookie(jwt) 
             http.SetCookie(w, &cookie)
-    }
-        //w.Header().Add("HX-Trigger","accountChange")
-        return nil  
+        }
+        return Layout("/").Render(r.Context(), w) 
     }
 }
+func (s* Server) PostAccountHandler(w http.ResponseWriter, r *http.Request)error{
+    var user types.User
+    json.NewDecoder(r.Body).Decode(&user)
+    defer r.Body.Close()
+    tmp_user,err := s.db.GetUser(user) 
+    if err==nil{
+        seasoned := tools.RiGeneratePwd(user.PWD,tmp_user.Salt)
+        if seasoned == tmp_user.PWD{
+            cookie := tools.WriteHttpOnlyCookie(tmp_user.JWT) 
+            http.SetCookie(w, &cookie)
+            return Layout("/").Render(r.Context(), w) 
+        }else{
+            return Sigin(true).Render(r.Context(), w) 
+        }
+    }else{
+        return Sigin(true).Render(r.Context(), w) 
+    }
+}
+
 
 func (s* Server) GetComponentEventAdderHandler(w http.ResponseWriter, r *http.Request)error{
     return RenderView(w,r,InputEvent(),"/")
@@ -158,6 +178,14 @@ func (s* Server) GetRoadmapHendler (w http.ResponseWriter, r *http.Request)error
         }
     }
 }
+func (s* Server) GetComponentLogin (w http.ResponseWriter, r *http.Request)error{
+     page := Login()
+     return RenderView(w,r,page,"/")
+ }
+func (s* Server) GetComponentSigin (w http.ResponseWriter, r *http.Request)error{
+    page := Sigin(false)
+    return RenderView(w,r,page,"/")
+ }
 
 func (s* Server) GetComponentColorsButton(w http.ResponseWriter, r *http.Request)error{
     page := ColorsButton()
